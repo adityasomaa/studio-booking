@@ -1,0 +1,585 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Tokens
+   ========================================================================== */
+
+@theme {
+  /* --- typography ------------------------------------------------------ */
+  --font-sans: "Neue Montreal", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+
+  /* --- colour ----------------------------------------------------------
+     One accent, everything else is a neutral tinted very slightly warm so the
+     page reads as paper under studio light rather than as flat grey. Every
+     pair below is checked by scripts/audit-contrast.mjs.                    */
+  --c-paper: oklch(98.6% 0.004 65);
+  --c-paper-2: oklch(96.2% 0.006 65);
+  --c-paper-3: oklch(93% 0.008 65);
+  --c-line: oklch(88% 0.01 65);
+  --c-line-strong: oklch(62% 0.012 65);
+  --c-ink: oklch(20% 0.014 65);
+  --c-ink-2: oklch(43% 0.014 65);
+  --c-on-ink: oklch(98.6% 0.004 65);
+  --c-accent: oklch(50% 0.16 32);
+  --c-accent-hover: oklch(44% 0.15 32);
+  --c-accent-deep: oklch(38% 0.13 32);
+  --c-accent-soft: oklch(95.5% 0.025 32);
+  --c-on-accent: oklch(99% 0.003 65);
+  /* Used only on the dark surfaces: the footer band and blocked slots. */
+  --c-on-ink-2: oklch(74% 0.012 65);
+  --c-line-on-ink: oklch(34% 0.014 65);
+  --c-accent-on-ink: oklch(72% 0.145 42);
+
+  --color-paper: var(--c-paper);
+  --color-paper-2: var(--c-paper-2);
+  --color-paper-3: var(--c-paper-3);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-on-ink: var(--c-on-ink);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-deep: var(--c-accent-deep);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-on-accent: var(--c-on-accent);
+  --color-on-ink-2: var(--c-on-ink-2);
+  --color-line-on-ink: var(--c-line-on-ink);
+  --color-accent-on-ink: var(--c-accent-on-ink);
+
+  /* --- motion ----------------------------------------------------------- */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-quint: cubic-bezier(0.64, 0, 0.78, 0);
+  --dur-curtain-close: 620ms;
+  --dur-curtain-open: 720ms;
+}
+
+/* --------------------------------------------------------------------------
+   The single z-index scale.
+   Content < sticky header < mobile menu < lightbox and calendar < cookie
+   banner < page curtain < skip link. Nothing in this codebase writes a raw
+   z-index; scripts/audit-layers.mjs enforces that.
+   -------------------------------------------------------------------------- */
+
+@layer theme {
+  :root {
+    --z-content: 0;
+    /* In-flow popovers: above sibling content, still under the sticky header. */
+    --z-popover: 50;
+    --z-header: 100;
+    --z-mobile-menu: 200;
+    --z-overlay: 300;
+    --z-cookie: 400;
+    --z-curtain: 450;
+    --z-skip: 500;
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  @font-face {
+    font-family: "Neue Montreal";
+    src: url("/fonts/NeueMontreal-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Neue Montreal";
+    src: url("/fonts/NeueMontreal-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: auto;
+  }
+
+  body {
+    background-color: var(--c-paper);
+    color: var(--c-ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Nothing may push the document sideways. */
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--c-accent-soft);
+    color: var(--c-accent-deep);
+  }
+
+  /* Body scroll lock, applied by useBodyScrollLock while an overlay is open. */
+  body[data-scroll-locked="true"] {
+    overflow: hidden;
+    touch-action: none;
+  }
+}
+
+/* ==========================================================================
+   Components
+   ========================================================================== */
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .shell {
+      padding-inline: 3rem;
+    }
+  }
+
+  /* --- headings ---------------------------------------------------------
+     Line count is governed per viewport by size and measure, never by a hard
+     coded line break. Mobile may run to three lines, tablet is held to two,
+     desktop resolves to one.                                                */
+  .type-display {
+    font-size: clamp(2.1rem, 8.6vw, 3rem);
+    max-width: 15ch;
+    line-height: 1.04;
+  }
+
+  .type-headline {
+    font-size: clamp(1.75rem, 6.6vw, 2.35rem);
+    max-width: 17ch;
+    line-height: 1.08;
+  }
+
+  .type-subhead {
+    font-size: clamp(1.15rem, 4.4vw, 1.4rem);
+    max-width: 22ch;
+    line-height: 1.2;
+  }
+
+  @media (min-width: 768px) {
+    .type-display {
+      font-size: clamp(3rem, 5.4vw, 4rem);
+      max-width: 24ch;
+    }
+    .type-headline {
+      font-size: clamp(2.35rem, 4.4vw, 3rem);
+      max-width: 26ch;
+    }
+    .type-subhead {
+      font-size: 1.5rem;
+      max-width: 34ch;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .type-display {
+      font-size: clamp(3.05rem, 3.15vw, 3.75rem);
+      max-width: 52ch;
+    }
+    .type-headline {
+      font-size: clamp(2.5rem, 2.55vw, 3rem);
+      max-width: 54ch;
+    }
+    .type-subhead {
+      font-size: 1.6rem;
+      max-width: 60ch;
+    }
+  }
+
+  .type-eyebrow {
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-ink-2);
+  }
+
+  .type-body {
+    max-width: 62ch;
+    color: var(--c-ink-2);
+    font-size: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .type-body {
+      font-size: 1.0625rem;
+    }
+  }
+
+  /* --- controls --------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 2.875rem;
+    padding: 0.75rem 1.375rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background-color 220ms var(--ease-out-quint),
+      border-color 220ms var(--ease-out-quint),
+      color 220ms var(--ease-out-quint),
+      transform 160ms var(--ease-out-quint);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .btn-primary {
+    background-color: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+
+  .btn-primary:hover:not([disabled]):not([aria-disabled="true"]) {
+    background-color: var(--c-accent-hover);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    border-color: var(--c-line-strong);
+    color: var(--c-ink);
+  }
+
+  .btn-secondary:hover:not([disabled]):not([aria-disabled="true"]) {
+    background-color: var(--c-paper-2);
+    border-color: var(--c-ink);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--c-ink);
+    padding-inline: 0.5rem;
+  }
+
+  .btn-ghost:hover {
+    color: var(--c-accent);
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .field-hint {
+    font-size: 0.8125rem;
+    color: var(--c-ink-2);
+    margin-top: 0.4375rem;
+  }
+
+  .field-error {
+    font-size: 0.8125rem;
+    color: var(--c-accent-deep);
+    margin-top: 0.4375rem;
+  }
+
+  .input {
+    width: 100%;
+    min-height: 2.875rem;
+    padding: 0.6875rem 0.9375rem;
+    border: 1px solid var(--c-line-strong);
+    border-radius: 0.625rem;
+    background-color: var(--c-paper);
+    color: var(--c-ink);
+    font: inherit;
+    font-size: 1rem;
+    transition: border-color 180ms var(--ease-out-quint);
+  }
+
+  .input::placeholder {
+    color: var(--c-ink-2);
+    opacity: 0.75;
+  }
+
+  .input:hover {
+    border-color: var(--c-ink-2);
+  }
+
+  .input[aria-invalid="true"] {
+    border-color: var(--c-accent);
+  }
+
+  .rule {
+    border: 0;
+    border-top: 1px solid var(--c-line);
+  }
+
+  .surface {
+    background-color: var(--c-paper-2);
+    border: 1px solid var(--c-line);
+    border-radius: 1rem;
+  }
+
+  .note {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.75rem;
+    background-color: var(--c-accent-soft);
+    color: var(--c-accent-deep);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+@layer utilities {
+  .layer-content {
+    z-index: var(--z-content);
+  }
+  .layer-popover {
+    z-index: var(--z-popover);
+  }
+  .layer-header {
+    z-index: var(--z-header);
+  }
+  .layer-mobile-menu {
+    z-index: var(--z-mobile-menu);
+  }
+  .layer-overlay {
+    z-index: var(--z-overlay);
+  }
+  .layer-cookie {
+    z-index: var(--z-cookie);
+  }
+  .layer-curtain {
+    z-index: var(--z-curtain);
+  }
+  .layer-skip {
+    z-index: var(--z-skip);
+  }
+
+  /* Hides content from sight while keeping it reachable by assistive tech.
+     Uses clip rather than a large negative offset, which needs a positioned
+     ancestor to be safe and silently drags the page sideways without one. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Scroll reveal. The observed element must not sit inside an
+     overflow-hidden parent or its intersection ratio never leaves zero, so
+     section wrappers use overflow: visible. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition:
+      opacity 700ms var(--ease-out-quint),
+      transform 700ms var(--ease-out-quint);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  .stack-lines > * + * {
+    border-top: 1px solid var(--c-line);
+  }
+}
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Page curtain
+   ========================================================================== */
+
+@layer components {
+  .curtain {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background-color: var(--c-ink);
+    color: var(--c-on-ink);
+    will-change: transform;
+    transform: translateY(100%);
+  }
+
+  .curtain[data-phase="idle"] {
+    transform: translateY(100%);
+    pointer-events: none;
+  }
+
+  .curtain[data-phase="intro"],
+  .curtain[data-phase="covered"] {
+    transform: translateY(0);
+  }
+
+  .curtain[data-phase="closing"] {
+    transform: translateY(0);
+    transition: transform var(--dur-curtain-close) var(--ease-in-quint);
+  }
+
+  .curtain[data-phase="opening"] {
+    transform: translateY(-100%);
+    transition: transform var(--dur-curtain-open) var(--ease-out-quint);
+  }
+
+  .curtain-rule {
+    height: 2px;
+    background-color: var(--c-accent-on-ink);
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+
+  .curtain[data-phase="intro"] .curtain-rule,
+  .curtain[data-phase="closing"] .curtain-rule,
+  .curtain[data-phase="covered"] .curtain-rule {
+    animation: curtain-rule-in 900ms var(--ease-out-quint) forwards;
+  }
+
+  @keyframes curtain-rule-in {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .curtain-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+
+  .curtain[data-phase="intro"] .curtain-letter,
+  .curtain[data-phase="closing"] .curtain-letter,
+  .curtain[data-phase="covered"] .curtain-letter {
+    animation: curtain-letter-in 620ms var(--ease-out-quint) forwards;
+    animation-delay: calc(var(--letter-index) * 38ms);
+  }
+
+  @keyframes curtain-letter-in {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .curtain-frame {
+    position: absolute;
+    inset: clamp(1rem, 4vw, 3rem);
+    border: 1px solid var(--c-line-on-ink);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .curtain-letter,
+    .curtain-rule {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   Skip link
+   ========================================================================== */
+
+@layer components {
+  .skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    background-color: var(--c-ink);
+    color: var(--c-on-ink);
+    font-size: 0.9375rem;
+    transform: translateY(-250%);
+    transition: transform 220ms var(--ease-out-quint);
+  }
+
+  .skip-link:focus-visible,
+  .skip-link:focus {
+    transform: none;
+  }
+}
