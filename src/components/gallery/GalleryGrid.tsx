@@ -131,6 +131,11 @@ export function GalleryGrid({
                   alt={item.alt}
                   fill
                   sizes="(min-width: 1024px) 33vw, 50vw"
+                  /* Every graphic here is a static SVG of about 1.5 KB served
+                     without the image optimizer, so lazy loading saves nothing
+                     and Chrome sometimes declines to load them at all inside
+                     the reveal wrappers. Fetch them outright. */
+                  loading="eager"
                   className="object-cover"
                 />
               </span>

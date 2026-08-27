@@ -26,6 +26,7 @@ export function PackageCard({ pkg, className }: { pkg: Package; className?: stri
           alt={"Grafis penanda paket " + pkg.name + ". Bukan foto hasil sesi."}
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          loading="eager"
           className="object-cover"
         />
       </div>

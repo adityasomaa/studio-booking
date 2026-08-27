@@ -66,6 +66,7 @@ export default function PaketPage() {
                     alt={"Grafis penanda " + room.name + ". Bukan foto ruangan sebenarnya."}
                     fill
                     sizes="(min-width: 640px) 50vw, 100vw"
+                    loading="eager"
                     className="object-cover"
                   />
                 </div>

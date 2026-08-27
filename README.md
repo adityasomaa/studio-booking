@@ -5,6 +5,8 @@ boleh bentrok**: satu ruangan hanya bisa dipakai satu pemesan pada satu rentang
 waktu, dan seluruh sisi lain dari situs dibangun mengelilingi aturan itu.
 
 - Produksi: https://studiobooking.onyxcreative.asia
+- Alias cadangan: https://studio-booking-id.vercel.app
+- Repo: https://github.com/adityasomaa/studio-booking
 - Stack: Next.js 16 (App Router) - React 19 - TypeScript - Tailwind CSS v4 - Lenis
 - Tanpa payment gateway, tanpa basis data. Lihat "Apa yang nyata dan apa yang
   masih lokal" di bawah.
@@ -23,6 +25,16 @@ export const STUDIO_NAME = "Studio Booking";
 
 Mengganti satu baris itu akan mengubah judul halaman, wordmark di header dan
 footer, gambar Open Graph, structured data, dan seluruh pesan WhatsApp sekaligus.
+
+### Catatan domain
+
+`studio-booking.vercel.app` sudah dipegang akun lain dan menolak dengan 409,
+begitu juga `studiobooking.vercel.app` dan `booking-studio-foto.vercel.app`.
+Nama terdekat yang kosong, `studio-booking-id.vercel.app`, diklaim secara
+eksplisit, bukan memakai nama cadangan acak dari Vercel. Domain kanonik situs ini
+tetap `studiobooking.onyxcreative.asia`, dan itulah satu-satunya nilai yang
+dipakai oleh `SITE_URL`, metadata, canonical, sitemap, robots, dan structured
+data.
 
 ## 2. Riset kontak
 

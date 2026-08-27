@@ -62,7 +62,7 @@ export function CookieBanner() {
       <div
         role="dialog"
         aria-label="Pengaturan cookie"
-        className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-line bg-paper p-5 shadow-[0_20px_60px_-30px_rgba(27,21,15,0.5)] sm:mx-0"
+        className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-line bg-paper p-5 shadow-[0_20px_60px_-30px_rgba(27,21,15,0.5)] sm:mr-0"
       >
         <h2 className="text-base font-medium">Cookie di situs ini</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-2">
